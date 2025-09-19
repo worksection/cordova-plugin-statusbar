@@ -180,21 +180,46 @@ public class StatusBar extends CordovaPlugin {
 
         window.clearFlags(WindowManager.LayoutParams.FLAG_TRANSLUCENT_STATUS); // SDK 19-30
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS); // SDK 21
-        window.setStatusBarColor(color);
+        if (Build.VERSION.SDK_INT < 35) {
+            window.setStatusBarColor(color);
+        }
     }
 
     private void setStatusBarTransparent(final boolean isTransparent) {
         final Window window = cordova.getActivity().getWindow();
-        int visibility = isTransparent
-            ? View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
-            : View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_VISIBLE;
 
-        window.getDecorView().setSystemUiVisibility(visibility);
+        if (Build.VERSION.SDK_INT >= 35) {
+            // Android 15+: avoid deprecated setStatusBarColor() and legacy flags.
+            androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, !isTransparent);
 
-        if (isTransparent) {
-            window.setStatusBarColor(Color.TRANSPARENT);
+            View decor = window.getDecorView();
+            androidx.core.view.WindowInsetsControllerCompat controller =
+                    androidx.core.view.WindowCompat.getInsetsController(window, decor);
+
+            // Optional: allow swipe to reveal system bars
+            controller.setSystemBarsBehavior(
+                androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            );
+
+            // Do NOT call window.setStatusBarColor() on API 35+ (deprecated).
+            // If you need tint/scrim, prefer theme attributes.
+            return;
+        }
+
+        // <= Android 14 (unchanged legacy behavior)
+        if (Build.VERSION.SDK_INT >= 21) {
+            View decor = window.getDecorView();
+            int visibility = isTransparent
+                    ? (View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
+                    : (View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_VISIBLE);
+            decor.setSystemUiVisibility(visibility);
+
+            if (isTransparent) {
+                window.setStatusBarColor(Color.TRANSPARENT);
+            }
         }
     }
+
 
     private void setStatusBarStyle(final String style) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !style.isEmpty()) {
