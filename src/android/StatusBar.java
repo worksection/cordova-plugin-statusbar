@@ -42,7 +42,6 @@ import org.apache.cordova.PluginResult;
 import org.json.JSONException;
 
 public class StatusBar extends CordovaPlugin {
-    // --- Edge-to-edge padding support ---
     private View webViewView;
     private boolean edgeToEdgePaddingEnabled = false;
 
@@ -78,6 +77,15 @@ public class StatusBar extends CordovaPlugin {
         } catch (Throwable t) {
             this.webViewView = null;
         }
+        if (Build.VERSION.SDK_INT >= 35) {
+            final View view = webView.getView();
+            ViewCompat.setOnApplyWindowInsetsListener(view, (v, insets) -> {
+                int topPadding = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+                int bottomPadding = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+                v.setPadding(0, topPadding, 0, bottomPadding);
+                return WindowInsetsCompat.CONSUMED;
+            });
+        }
 
         activity = this.cordova.getActivity();
         window = activity.getWindow();
@@ -86,10 +94,6 @@ public class StatusBar extends CordovaPlugin {
             // Clear flag FLAG_FORCE_NOT_FULLSCREEN which is set initially
             // by the Cordova.
             window.clearFlags(WindowManager.LayoutParams.FLAG_FORCE_NOT_FULLSCREEN);
-            // Enable edge-to-edge with system bar padding applied to WebView (Android 15+/SDK>=35)
-            if (Build.VERSION.SDK_INT >= 35) {
-                applySystemBarsPadding(true);
-            }
 
             // Read 'StatusBarOverlaysWebView' from config.xml, default is true.
             setStatusBarTransparent(preferences.getBoolean("StatusBarOverlaysWebView", true));
@@ -203,27 +207,16 @@ public class StatusBar extends CordovaPlugin {
 
     private void setStatusBarTransparent(final boolean isTransparent) {
         final Window window = cordova.getActivity().getWindow();
-
-        if (Build.VERSION.SDK_INT >= 35) {
-            // Do NOT call window.setStatusBarColor() on API 35+ (deprecated).
-            // If you need tint/scrim, prefer theme attributes.
-            return;
-        }
-
-        // <= Android 14 (unchanged legacy behavior)
-        if (Build.VERSION.SDK_INT >= 21) {
-            View decor = window.getDecorView();
             int visibility = isTransparent
-                    ? (View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN)
-                    : (View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_VISIBLE);
-            decor.setSystemUiVisibility(visibility);
+            ? View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_LAYOUT_FULLSCREEN
+            : View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_VISIBLE;
 
-            if (isTransparent) {
-                window.setStatusBarColor(Color.TRANSPARENT);
-            }
+        window.getDecorView().setSystemUiVisibility(visibility);
+
+        if (isTransparent) {
+            window.setStatusBarColor(Color.TRANSPARENT);
         }
     }
-
 
     private void setStatusBarStyle(final String style) {
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.M && !style.isEmpty()) {
@@ -239,65 +232,4 @@ public class StatusBar extends CordovaPlugin {
             }
         }
     }
-    private void applySystemBarsPadding(boolean enable) {
-                // Guard: only enable edge-to-edge padding logic on Android 15+ (SDK >= 35)
-        if (Build.VERSION.SDK_INT < 35) {
-            return;
-        }
-
-if (cordova == null || cordova.getActivity() == null) return;
-
-        final Window window = cordova.getActivity().getWindow();
-        final View decor = window.getDecorView();
-
-        edgeToEdgePaddingEnabled = enable;
-
-        if (enable) {
-            // Enable edge-to-edge
-            WindowCompat.setDecorFitsSystemWindows(window, false);
-
-            // Listen for insets and apply padding to the WebView
-            ViewCompat.setOnApplyWindowInsetsListener(decor, (v, insets) -> {
-                if (!edgeToEdgePaddingEnabled) return insets;
-
-                Insets status = insets.getInsets(WindowInsetsCompat.Type.statusBars());
-                Insets nav = insets.getInsets(WindowInsetsCompat.Type.navigationBars());
-                Insets sys = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-
-                int left = sys.left;
-                int right = sys.right;
-                int top = status.top;
-                int bottom = nav.bottom;
-
-                View target = (webViewView != null) ? webViewView : v.findViewById(android.R.id.content);
-                if (target != null) {
-                    target.setPadding(left, top, right, bottom);
-                    target.requestLayout();
-                }
-                return insets; // do not consume
-            });
-
-            ViewCompat.requestApplyInsets(decor);
-        } else {
-            // Restore legacy behavior
-            WindowCompat.setDecorFitsSystemWindows(window, true);
-            ViewCompat.setOnApplyWindowInsetsListener(decor, null);
-            if (webViewView != null) {
-                webViewView.setPadding(0, 0, 0, 0);
-                webViewView.requestLayout();
-            }
-        }
-    }
-
-    @Override
-    public void onResume(boolean multitasking) {
-        super.onResume(multitasking);
-        try {
-            if (edgeToEdgePaddingEnabled && cordova != null && cordova.getActivity() != null) {
-                View decor = cordova.getActivity().getWindow().getDecorView();
-                ViewCompat.requestApplyInsets(decor);
-            }
-        } catch (Throwable ignore) {}
-    }
-
 }
