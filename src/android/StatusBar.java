@@ -205,18 +205,6 @@ public class StatusBar extends CordovaPlugin {
         final Window window = cordova.getActivity().getWindow();
 
         if (Build.VERSION.SDK_INT >= 35) {
-            // Android 15+: avoid deprecated setStatusBarColor() and legacy flags.
-            androidx.core.view.WindowCompat.setDecorFitsSystemWindows(window, !isTransparent);
-
-            View decor = window.getDecorView();
-            androidx.core.view.WindowInsetsControllerCompat controller =
-                    androidx.core.view.WindowCompat.getInsetsController(window, decor);
-
-            // Optional: allow swipe to reveal system bars
-            controller.setSystemBarsBehavior(
-                androidx.core.view.WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
-            );
-
             // Do NOT call window.setStatusBarColor() on API 35+ (deprecated).
             // If you need tint/scrim, prefer theme attributes.
             return;
