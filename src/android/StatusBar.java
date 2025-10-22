@@ -213,13 +213,13 @@ public class StatusBar extends CordovaPlugin {
             : View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_VISIBLE;
 
         window.getDecorView().setSystemUiVisibility(visibility);
-        window.getDecorView().setPadding(0, 40, 0, 40);
         View decor = window.getDecorView();
         WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(decor);
         if (insets != null) {
             int topPadding = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
             int bottomPadding = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
             decor.setPadding(0, topPadding, 0, bottomPadding);
+            if (this.webViewView != null) this.webViewView.setPadding(0, topPadding, 0, bottomPadding);
         }
 
 
