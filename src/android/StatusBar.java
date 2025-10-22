@@ -79,7 +79,7 @@ public class StatusBar extends CordovaPlugin {
         }
         if (Build.VERSION.SDK_INT >= 35) {
             final View view = webView.getView();
-            view.setPadding(0, 40, 0, 40);
+            // view.setPadding(0, 40, 0, 40);
             ViewCompat.setOnApplyWindowInsetsListener(view, (v, insets) -> {
                 int topPadding = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
                 int bottomPadding = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
@@ -214,6 +214,14 @@ public class StatusBar extends CordovaPlugin {
 
         window.getDecorView().setSystemUiVisibility(visibility);
         window.getDecorView().setPadding(0, 40, 0, 40);
+        View decor = window.getDecorView();
+        WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(decor);
+        if (insets != null) {
+            int topPadding = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+            int bottomPadding = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+            decor.setPadding(0, topPadding, 0, bottomPadding);
+        }
+
 
         if (isTransparent) {
             window.setStatusBarColor(Color.TRANSPARENT);
