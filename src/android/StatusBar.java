@@ -75,37 +75,7 @@ public class StatusBar extends CordovaPlugin {
         super.initialize(cordova, webView);
         this.webView = webView;
         if (Build.VERSION.SDK_INT >= 35) {
-            final Window window = activity.getWindow();
-            final View decor = window.getDecorView();
-        
-            // Edge-to-edge + прозорі системні панелі
-            WindowCompat.setDecorFitsSystemWindows(window, false);
-            window.setStatusBarColor(Color.TRANSPARENT);
-            window.setNavigationBarColor(Color.TRANSPARENT);
-        
-            // Контейнер Cordova WebView (FrameLayout)
-            final View container = webView.getView();
-            if (container instanceof ViewGroup) {
-                ((ViewGroup) container).setClipToPadding(false);
-            }
-            container.setFitsSystemWindows(false);
-        
-            // Паддінги за інсетами саме на контейнер
-            ViewCompat.setOnApplyWindowInsetsListener(container, (v, insets) -> {
-                final Insets sys = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                final int top = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
-                final int bottom = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
-                v.setPadding(sys.left, top, sys.right, bottom);
-                return insets; // не CONSUMED
-            });
-        
-            // Прибрати listener з decor, якщо раніше ставили і він CONSUME-ив інсети
-            ViewCompat.setOnApplyWindowInsetsListener(decor, null);
-        
-            ViewCompat.requestApplyInsets(container);
         }
-
-
 
         activity = this.cordova.getActivity();
         window = activity.getWindow();
@@ -232,13 +202,17 @@ public class StatusBar extends CordovaPlugin {
             : View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_VISIBLE;
 
         window.getDecorView().setSystemUiVisibility(visibility);
-        View decor = window.getDecorView();
-        WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(decor);
-        if (insets != null) {
-            int topPadding = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
-            int bottomPadding = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
-            // decor.setPadding(0, topPadding, 0, bottomPadding);
-            this.webView.getView().setPadding(0, topPadding, 0, bottomPadding);
+        
+        if (Build.VERSION.SDK_INT >= 35) {
+            View decor = window.getDecorView();
+            WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(decor);
+            if (insets != null) {
+                int topPadding = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+                int bottomPadding = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+                // decor.setPadding(0, topPadding, 0, bottomPadding);
+                decor.setPadding(0, topPadding, 0, bottomPadding);
+                decor.setBackgroundColor(Color.WHITE);
+            }            
         }
 
 
