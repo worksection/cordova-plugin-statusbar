@@ -74,25 +74,37 @@ public class StatusBar extends CordovaPlugin {
         super.initialize(cordova, webView);
         this.webView = webView;
         if (Build.VERSION.SDK_INT >= 35) {
-            final Window window = cordova.getActivity().getWindow();
+            final Window window = activity.getWindow();
             final View decor = window.getDecorView();
-            final View web = webView.getView(); // <- ЦІЛЬ ДЛЯ PADDING
         
-            // 1) Edge-to-edge та прозорі панелі
+            // 1) Edge-to-edge + прозорі системні панелі
             WindowCompat.setDecorFitsSystemWindows(window, false);
             window.setStatusBarColor(Color.TRANSPARENT);
             window.setNavigationBarColor(Color.TRANSPARENT);
         
-            // 2) Слухаємо інсети саме на WebView і ставимо padding на нього
-            ViewCompat.setOnApplyWindowInsetsListener(web, (v, insets) -> {
+            // 2) Ціль — контейнер Cordova WebView (FrameLayout)
+            final View container = webView.getView();
+            if (container instanceof ViewGroup) {
+                ((ViewGroup) container).setClipToPadding(false); // щоб контент не «різався» паддінгами
+            }
+            container.setFitsSystemWindows(false); // управління інсетами беремо на себе
+        
+            // 3) Слухаємо інсети й ставимо паддінги НА КОНТЕЙНЕР
+            ViewCompat.setOnApplyWindowInsetsListener(container, (v, insets) -> {
                 final Insets sys = insets.getInsets(WindowInsetsCompat.Type.systemBars());
-                v.setPadding(sys.left, sys.top, sys.right, sys.bottom);
-                return insets; // НЕ CONSUMED!
+                final int top = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
+                final int bottom = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+                v.setPadding(sys.left, top, sys.right, bottom);
+                return insets; // НЕ CONSUMED — інсети доступні іншим
             });
         
-            // 3) Форсуємо обчислення інсетів (важливо після attach/повороту)
-            ViewCompat.requestApplyInsets(web);
+            // 4) ВАЖЛИВО: забери будь-які слухачі/логіку на decor, які могли CONSUME інсети
+            ViewCompat.setOnApplyWindowInsetsListener(decor, null);
+        
+            // 5) Форсуємо застосування інсетів (після attach/rotation/resume)
+            ViewCompat.requestApplyInsets(container);
         }
+
 
         activity = this.cordova.getActivity();
         window = activity.getWindow();
