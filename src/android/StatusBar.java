@@ -74,14 +74,24 @@ public class StatusBar extends CordovaPlugin {
         super.initialize(cordova, webView);
         this.webView = webView;
         if (Build.VERSION.SDK_INT >= 35) {
-            final View view = webView.getView();
-            // view.setPadding(0, 40, 0, 40);
-            ViewCompat.setOnApplyWindowInsetsListener(view, (v, insets) -> {
-                int topPadding = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
-                int bottomPadding = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
-                v.setPadding(0, topPadding, 0, bottomPadding);
-                return WindowInsetsCompat.CONSUMED;
+            final Window window = cordova.getActivity().getWindow();
+            final View decor = window.getDecorView();
+            final View web = webView.getView(); // <- ЦІЛЬ ДЛЯ PADDING
+        
+            // 1) Edge-to-edge та прозорі панелі
+            WindowCompat.setDecorFitsSystemWindows(window, false);
+            window.setStatusBarColor(Color.TRANSPARENT);
+            window.setNavigationBarColor(Color.TRANSPARENT);
+        
+            // 2) Слухаємо інсети саме на WebView і ставимо padding на нього
+            ViewCompat.setOnApplyWindowInsetsListener(web, (v, insets) -> {
+                final Insets sys = insets.getInsets(WindowInsetsCompat.Type.systemBars());
+                v.setPadding(sys.left, sys.top, sys.right, sys.bottom);
+                return insets; // НЕ CONSUMED!
             });
+        
+            // 3) Форсуємо обчислення інсетів (важливо після attach/повороту)
+            ViewCompat.requestApplyInsets(web);
         }
 
         activity = this.cordova.getActivity();
