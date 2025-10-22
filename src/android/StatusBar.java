@@ -192,6 +192,10 @@ public class StatusBar extends CordovaPlugin {
         window.addFlags(WindowManager.LayoutParams.FLAG_DRAWS_SYSTEM_BAR_BACKGROUNDS); // SDK 21
         if (Build.VERSION.SDK_INT < 35) {
             window.setStatusBarColor(color);
+        } 
+        if (Build.VERSION.SDK_INT >= 35) {
+            View decor = window.getDecorView();
+            decor.setBackgroundColor(Color.WHITE);
         }
     }
 
@@ -210,13 +214,13 @@ public class StatusBar extends CordovaPlugin {
                 int topPadding = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
                 int bottomPadding = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
                 // decor.setPadding(0, topPadding, 0, bottomPadding);
-                decor.setPadding(0, topPadding, 0, bottomPadding);
-                decor.setBackgroundColor(Color.WHITE);
+                if (isTransparent) decor.setPadding(0, 0, 0, 0); 
+                else decor.setPadding(0, topPadding, 0, bottomPadding);
             }            
         }
 
 
-        if (isTransparent) {
+        if (Build.VERSION.SDK_INT < 35 && isTransparent) {
             window.setStatusBarColor(Color.TRANSPARENT);
         }
     }
