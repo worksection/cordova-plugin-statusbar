@@ -212,7 +212,7 @@ public class StatusBar extends CordovaPlugin {
             WindowInsetsCompat insets = ViewCompat.getRootWindowInsets(decor);
             if (insets != null) {
                 int topPadding = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
-                int bottomPadding = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
+                int bottomPadding = 0; //insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
                 // decor.setPadding(0, topPadding, 0, bottomPadding);
                 if (isTransparent) decor.setPadding(0, 0, 0, 0); 
                 else decor.setPadding(0, topPadding, 0, bottomPadding);
