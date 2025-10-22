@@ -72,11 +72,7 @@ public class StatusBar extends CordovaPlugin {
     public void initialize(final CordovaInterface cordova, CordovaWebView webView) {
         LOG.v(TAG, "StatusBar: initialization");
         super.initialize(cordova, webView);
-        try {
-            this.webViewView = (webView != null) ? webView.getView() : null;
-        } catch (Throwable t) {
-            this.webViewView = null;
-        }
+        this.webView = webView;
         if (Build.VERSION.SDK_INT >= 35) {
             final View view = webView.getView();
             // view.setPadding(0, 40, 0, 40);
@@ -218,8 +214,8 @@ public class StatusBar extends CordovaPlugin {
         if (insets != null) {
             int topPadding = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
             int bottomPadding = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
-            decor.setPadding(0, topPadding, 0, bottomPadding);
-            if (this.webViewView != null) this.webViewView.setPadding(0, topPadding, 0, bottomPadding);
+            // decor.setPadding(0, topPadding, 0, bottomPadding);
+            this.webView.getView().setPadding(0, topPadding, 0, bottomPadding);
         }
 
 
