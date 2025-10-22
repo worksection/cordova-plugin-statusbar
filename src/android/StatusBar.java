@@ -79,6 +79,7 @@ public class StatusBar extends CordovaPlugin {
         }
         if (Build.VERSION.SDK_INT >= 35) {
             final View view = webView.getView();
+            view.setPadding(0, 40, 0, 40);
             ViewCompat.setOnApplyWindowInsetsListener(view, (v, insets) -> {
                 int topPadding = insets.getInsets(WindowInsetsCompat.Type.statusBars()).top;
                 int bottomPadding = insets.getInsets(WindowInsetsCompat.Type.navigationBars()).bottom;
