@@ -195,7 +195,7 @@ public class StatusBar extends CordovaPlugin {
         } 
         if (Build.VERSION.SDK_INT >= 35) {
             View decor = window.getDecorView();
-            decor.setBackgroundColor(Color.WHITE);
+            decor.setBackgroundColor(color);
         }
     }
 
