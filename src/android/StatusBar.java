@@ -213,6 +213,7 @@ public class StatusBar extends CordovaPlugin {
             : View.SYSTEM_UI_FLAG_LAYOUT_STABLE | View.SYSTEM_UI_FLAG_VISIBLE;
 
         window.getDecorView().setSystemUiVisibility(visibility);
+        window.getDecorView().setPadding(0, 40, 0, 40);
 
         if (isTransparent) {
             window.setStatusBarColor(Color.TRANSPARENT);
